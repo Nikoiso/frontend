@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import api from "@/lib/api";
+import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
 function ResetPasswordForm() {
@@ -28,8 +29,11 @@ function ResetPasswordForm() {
       await api.post(`/auth/reset-password/${token}`, { password }); 
       router.replace("/login"); 
     }
-    catch { 
-      setError("This reset link is invalid or has expired."); 
+    catch (requestError: unknown) { 
+      const responseMessage = axios.isAxiosError<{ message?: string }>(requestError)
+        ? requestError.response?.data?.message
+        : undefined;
+      setError(responseMessage || "Could not update the password. Please try again."); 
     }
     finally { 
       setLoading(false); 
@@ -69,6 +73,8 @@ function ResetPasswordForm() {
               type="password" 
               required 
               minLength={6} 
+              maxLength={128}
+              autoComplete="new-password"
               value={password} 
               onChange={(event) => setPassword(event.target.value)} 
               className="w-full bg-transparent outline-none text-gray-900 text-sm mt-0.5" 
@@ -83,6 +89,8 @@ function ResetPasswordForm() {
               type="password" 
               required 
               minLength={6} 
+              maxLength={128}
+              autoComplete="new-password"
               value={confirmPassword} 
               onChange={(event) => setConfirmPassword(event.target.value)} 
               className="w-full bg-transparent outline-none text-gray-900 text-sm mt-0.5" 

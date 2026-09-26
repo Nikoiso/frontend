@@ -11,7 +11,7 @@ import api from "@/lib/api";
 import { motion } from "framer-motion";
 
 export default function HomePage() {
-  const { tweets, loading, refreshTweets } = useTweets();
+  const { tweets, loading, refreshTweets, removeTweet } = useTweets();
   const [feed, setFeed] = useState<"all" | "following">("all");
   const [feedTweets, setFeedTweets] = useState(tweets);
 
@@ -128,6 +128,10 @@ export default function HomePage() {
                 tweet={tweet}
                 onLike={() => handleLike(tweet._id)}
                 onRepost={() => handleRepost(tweet._id)}
+                onDelete={() => {
+                  removeTweet(tweet._id);
+                  setFeedTweets((current) => current.filter((post) => post._id !== tweet._id));
+                }}
               />
             </motion.div>
           ))}

@@ -25,6 +25,8 @@ export default function TweetCard({ tweet, onLike, onRepost, onDelete, onBookmar
   const articleRef = useRef<HTMLElement>(null);
   const userId = user?._id;
   const [bookmarked, setBookmarked] = useState(tweet.bookmarks?.some((entry) => (typeof entry === "string" ? entry : entry._id) === user?._id) ?? isBookmarked);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
   useEffect(() => {
     const node = articleRef.current;
     if (!node || !userId) return;
@@ -41,10 +43,19 @@ export default function TweetCard({ tweet, onLike, onRepost, onDelete, onBookmar
   const isLiked = tweet.likes.some((like) => (typeof like === "string" ? like : like._id) === user?._id);
   const isReposted = tweet.reposts.some((repost) => (typeof repost === "string" ? repost : repost._id) === user?._id);
   
-  const remove = async () => { 
-    if (!confirm("Delete this post?")) return; 
-    await api.delete(`/posts/${tweet._id}`); 
-    onDelete?.(); 
+  const remove = async () => {
+    if (deleting || !confirm("Delete this post?")) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await api.delete(`/posts/${tweet._id}`);
+      onDelete?.();
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      setDeleteError(message || "Could not delete this post. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
   };
   const toggleBookmark = async () => {
     const previous = bookmarked;
@@ -86,13 +97,17 @@ export default function TweetCard({ tweet, onLike, onRepost, onDelete, onBookmar
                 whileHover={{ scale: 1.1, backgroundColor: "rgba(239, 68, 68, 0.1)" }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => void remove()} 
-                className="ml-auto p-2 rounded-full text-gray-500 hover:text-red-500 transition-colors" 
+                disabled={deleting}
+                className="ml-auto p-2 rounded-full text-gray-500 hover:text-red-500 transition-colors disabled:opacity-50"
                 aria-label="Delete post"
+                title={deleting ? "Deleting…" : "Delete post"}
               >
                 <Trash2 size={16} />
               </motion.button>
             )}
           </div>
+
+          {deleteError && <p role="alert" className="mt-2 text-sm text-red-600">{deleteError}</p>}
 
           <Link href={`/post/${tweet._id}`} className="block">
             {tweet.text && (

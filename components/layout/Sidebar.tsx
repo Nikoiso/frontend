@@ -122,7 +122,7 @@ export default function Sidebar() {
             >
               <Link
                 href={item.href}
-                className={`group flex items-center gap-5 rounded-full px-4 py-3 text-xl transition-colors hover:bg-gray-100 ${pathname === item.href ? "font-bold" : ""}`}
+                className={`group flex items-center gap-5 rounded-full px-4 py-3 text-xl transition-colors hover:bg-gray-100 ${pathname === item.href && item.name !== "Creator Studio" ? "font-bold" : ""}`}
               >
                 <motion.span
                   className="flex w-7 items-center justify-center"
